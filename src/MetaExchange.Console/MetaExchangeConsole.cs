@@ -31,7 +31,7 @@ public class MetaExchangeConsole
         while (!exitRequested)
         {
             PrintHeader();
-            CryptExchangesResult cryptoExchangeResult = await _orderBookService.GetCryptoExchanges();
+            CryptoExchangesResult cryptoExchangeResult = await _orderBookService.GetCryptoExchanges();
             PrintCryptoExchangesTable(cryptoExchangeResult.CryptoExchanges);
 
             string choice = AnsiConsole.Prompt(

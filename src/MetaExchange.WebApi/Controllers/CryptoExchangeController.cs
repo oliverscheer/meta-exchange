@@ -28,7 +28,7 @@ public class CryptoExchangeController : ControllerBase
     public async Task<IActionResult> GetCryptoExchanges()
     {
         _logger.LogInformation("Get Crypto Exchanges called");
-        CryptExchangesResult result = await _orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult result = await _orderBookService.GetCryptoExchanges();
 
         // Remarks: This can be simplified with OneOf-Library, but that is not used in this project.
 
@@ -47,7 +47,7 @@ public class CryptoExchangeController : ControllerBase
     public async Task<IActionResult> GetCryptoExchangeById(string id)
     {
         _logger.LogInformation("Get Crypto Exchange by id called");
-        CryptExchangesResult result = await _orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult result = await _orderBookService.GetCryptoExchanges();
         CryptoExchange? exchange = result.CryptoExchanges.FirstOrDefault(e => e.Id == id);
         if (exchange == null)
         {

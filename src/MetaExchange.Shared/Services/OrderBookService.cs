@@ -15,7 +15,7 @@ public class OrderBookService : IOrderBookService
         _logger = logger;
     }
 
-    public async Task<CryptExchangesResult> GetCryptoExchanges()
+    public async Task<CryptoExchangesResult> GetCryptoExchanges()
     {
         return await _exchangeService.GetCryptoExchanges();
     }
@@ -26,7 +26,7 @@ public class OrderBookService : IOrderBookService
         OrderPlan orderPlan = new();
         decimal remainingAmountOfBtcToBuy = amountOfBtcToBuy;
 
-        CryptExchangesResult cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
 
         List<Ask> asks = [.. cryptoExchangesResult.CryptoExchanges
             .SelectMany(exchange => exchange.OrderBook.Asks)
@@ -67,7 +67,7 @@ public class OrderBookService : IOrderBookService
         OrderPlan orderPlan = new();
         decimal remainingAmountOfBtcToSell = amountOfBtcToSell;
 
-        CryptExchangesResult cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
 
         List<Bid> bids = [.. cryptoExchangesResult.CryptoExchanges
             .SelectMany(exchange => exchange.OrderBook.Bids)
@@ -151,12 +151,6 @@ public class OrderBookService : IOrderBookService
                 return false;
             }
 
-            //decimal price = orderPlanDetail.Order.Price * orderPlanDetail.Amount;
-            //if (estimatedEuroForCryptoExchange < price)
-            //{
-            //    _logger.LogWarning($"Crypto exchange {cryptoExchange.Id} does not have enough Euro to fulfill the order.");
-            //    return false;
-            //}
         }
         else
         {
@@ -170,7 +164,7 @@ public class OrderBookService : IOrderBookService
     {
         ExecuteOrderPlanResult result = new();
 
-        CryptExchangesResult cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
 
         foreach (OrderPlanDetail orderPlanDetail in orderPlan.OrderPlanDetails)
         {
@@ -209,24 +203,7 @@ public class OrderBookService : IOrderBookService
                         Bids = [.. bids],
                         Asks = cryptoExchange.OrderBook.Asks
                     };
-
-                    //// remove ask order
-                    //Ask? askOrderToRemove = cryptoExchange.OrderBook.Asks
-                    //    .FirstOrDefault(b => b.Order.Id == order.Id);
-
-                    //if (askOrderToRemove is null)
-                    //{
-                    //    result.AddError("Ask order to remove not found in the order book.");
-                    //    return result;
-                    //}
-
-                    //List<Ask> asks = [.. cryptoExchange.OrderBook.Asks];
-                    //asks.Remove(askOrderToRemove);
-                    //cryptoExchange.OrderBook = new Orderbook
-                    //{
-                    //    Bids = cryptoExchange.OrderBook.Bids,
-                    //    Asks = [.. asks]
-                    //};
+                    
                 }
             }
             else if (order.Type == OrderType.Sell)
@@ -255,23 +232,6 @@ public class OrderBookService : IOrderBookService
                         Asks = [.. asks]
                     };
 
-                    //// remove bid order
-                    //Bid? bidOrderToRemove = cryptoExchange.OrderBook.Bids
-                    //    .FirstOrDefault(b => b.Order.Id == order.Id);
-
-                    //if (bidOrderToRemove is null)
-                    //{
-                    //    result.AddError("Bid order to remove not found in the order book.");
-                    //    return result;
-                    //}
-
-                    //List<Bid> bids = [.. cryptoExchange.OrderBook.Bids];
-                    //bids.Remove(bidOrderToRemove);
-                    //cryptoExchange.OrderBook = new Orderbook
-                    //{
-                    //    Bids = [.. bids],
-                    //    Asks = cryptoExchange.OrderBook.Asks
-                    //};
                 }
             }
             else

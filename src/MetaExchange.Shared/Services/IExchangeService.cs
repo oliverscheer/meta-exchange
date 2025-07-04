@@ -6,5 +6,5 @@ public interface IExchangeService
 {
     //CryptoExchange[] CryptoExchanges { get; set; }
 
-    Task<CryptExchangesResult> GetCryptoExchanges();
+    Task<CryptoExchangesResult> GetCryptoExchanges();
 }

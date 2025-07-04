@@ -22,7 +22,7 @@ public class OrderBookServiceTests
         // nothing
 
         // Assert
-        CryptExchangesResult cryptoExchanges = await orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchanges = await orderBookService.GetCryptoExchanges();
         Assert.NotNull(cryptoExchanges);
         Assert.True(cryptoExchanges.CryptoExchanges.Length > 0);
     }
@@ -48,7 +48,7 @@ public class OrderBookServiceTests
         Assert.Equal(amountOfBtc, orderPlan.TotalAmount);
         Assert.True(orderPlan.TotalPrice > 0);
 
-        CryptExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
         foreach (OrderPlanDetail opd in orderPlan.OrderPlanDetails)
         {
             CryptoExchange? cryptoExchange = cryptoExchangeResult
@@ -86,7 +86,7 @@ public class OrderBookServiceTests
         Assert.Equal(amountOfBtc, orderPlan.TotalAmount);
         Assert.True(orderPlan.TotalPrice > 0);
 
-        CryptExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
 
         foreach (OrderPlanDetail opd in orderPlan.OrderPlanDetails)
         {
@@ -118,7 +118,7 @@ public class OrderBookServiceTests
         Mock<ILogger<OrderBookService>> mockOrderBookServiceLogger = new();
         OrderBookService orderBookService = new(exchangeService, mockOrderBookServiceLogger.Object);
 
-        CryptExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
 
         // Create ask to buy btc
         orderBookService.AddAsk(
@@ -159,7 +159,7 @@ public class OrderBookServiceTests
         Mock<ILogger<OrderBookService>> mockOrderBookServiceLogger = new();
         OrderBookService orderBookService = new(exchangeService, mockOrderBookServiceLogger.Object);
 
-        CryptExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
+        CryptoExchangesResult cryptoExchangeResult = await orderBookService.GetCryptoExchanges();
 
         // Create Asks in orderbook to Sell btc
         orderBookService.AddAsk(

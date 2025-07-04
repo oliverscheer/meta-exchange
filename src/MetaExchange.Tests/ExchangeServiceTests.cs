@@ -19,7 +19,7 @@ public class FileBasedExchangeServiceTests
         // do nothing
 
         // Assert
-        CryptExchangesResult result = await exchangeService.GetCryptoExchanges();
+        CryptoExchangesResult result = await exchangeService.GetCryptoExchanges();
         Assert.NotNull(result.CryptoExchanges);
         Assert.True(result.CryptoExchanges.Length > 0);
     }

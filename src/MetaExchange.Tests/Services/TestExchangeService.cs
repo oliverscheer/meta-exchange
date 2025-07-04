@@ -24,9 +24,9 @@ public class TestExchangeService : IExchangeService
     public CryptoExchange[] CryptoExchanges { get => _cryptoExchanges.ToArray(); set => new NotImplementedException(); }
     private readonly List<CryptoExchange> _cryptoExchanges = [];
 
-    public Task<CryptExchangesResult> GetCryptoExchanges()
+    public Task<CryptoExchangesResult> GetCryptoExchanges()
     {
-        CryptExchangesResult result = new()
+        CryptoExchangesResult result = new()
         {
             CryptoExchanges = [.. _cryptoExchanges]
         };

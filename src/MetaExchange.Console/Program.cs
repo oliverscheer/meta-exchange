@@ -20,4 +20,4 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .Build();
 
 MetaExchangeConsole app = host.Services.GetRequiredService<MetaExchangeConsole>();
-app.Run();
+await app.Run();
