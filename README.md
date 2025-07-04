@@ -23,6 +23,8 @@ docker build -t metaexchangeconsole:latest ./src -f ./src/MetaExchange.Console/D
 docker run -it metaexchangeconsole
 ```
 
+![Console App](assets/ConsoleApp.png)
+
 ## Run Web API
 
 ```bash
@@ -35,12 +37,11 @@ docker build -t metaexchangewebapi:latest ./src -f ./src/MetaExchange.WebApi/Doc
 docker run -p 8080:8080 -p 8081:8081 --rm metaexchangewebapi
 docker run -d -p 8080:8080 -p 8081:8081 --name metaexchangewebapi metaexchangewebapi
 
-## Open API Website with Scalar
-xdg-open http://localhost:8080/scalar/         # Linux
-open http://localhost:8080/scalar/             # macos
-Start-Process "http://localhost:8080/scalar/"  # PowerShell
-start http://localhost:8080/scalar/            # cmd
 ```
+
+Then open a browser on this address: <http://localhost:8080/scalar/>
+
+![Web Api](assets/WebApi.png)
 
 ## Remarks
 
