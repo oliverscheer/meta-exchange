@@ -2,8 +2,8 @@ using MetaExchange.Shared.Helper;
 using MetaExchange.Shared.Models;
 using MetaExchange.Shared.Models.Results;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Reflection;
-using System.Text.Json;
 
 namespace MetaExchange.Shared.Services;
 
@@ -16,18 +16,18 @@ public class FileBasedExchangeService : IExchangeService
     public FileBasedExchangeService(ILogger<FileBasedExchangeService> logger)
     {
         _logger = logger;
-        //CryptoExchanges = LoadDataFromEmbbedFiles();
     }
 
-    public async Task<CryptExchangesResult> GetCryptoExchanges()
+    public async Task<CryptoExchangesResult> GetCryptoExchanges()
     {
         if (_cryptoExchanges.Length == 0)
         {
-            _logger.LogError("CryptoExchanges is null. Loading data from embedded files.");
-            _cryptoExchanges = LoadDataFromEmbbedFiles();
+            _logger.LogInformation("CryptoExchanges is null. Loading data from embedded files.");
+            // Use Task.Run to make the method asynchronous and avoid the CS1998 warning.
+            _cryptoExchanges = await Task.Run(() => LoadDataFromEmbbedFiles());
         }
         _logger.LogInformation("Get Crypto Exchanges called");
-        CryptExchangesResult result = new()
+        CryptoExchangesResult result = new()
         {
             CryptoExchanges = _cryptoExchanges
         };
@@ -80,7 +80,32 @@ public class FileBasedExchangeService : IExchangeService
     {
         try
         {
-            CryptoExchange? exchangeData = JsonSerializer.Deserialize<CryptoExchange>(jsonData);
+            _logger.LogInformation("LoadDataFromString");
+
+            //var serializerOptions = new JsonSerializerOptions
+            //{
+            //    PropertyNameCaseInsensitive = false,
+            //};
+
+            //Newtonsoft.Json.JsonConvert.DefaultSettings = () => new Newtonsoft.Json.JsonSerializerSettings
+            //{
+            //    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+            //};
+
+            CryptoExchange? exchangeData = JsonConvert.DeserializeObject<CryptoExchange>(jsonData);
+
+            //CryptoExchange ? exchangeData = JsonConvert.DeserializeObject<CryptoExchange?>(jsonData, new JsonSerializerSettings
+            //{
+            //    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+            //    Error = (sender, args) =>
+            //    {
+            //        _logger.LogError($"JSON-Deserialisierungsfehler: {args.ErrorContext.Error.Message} (Pfad: {args.ErrorContext.Path})");
+            //        args.ErrorContext.Handled = true; // Mark the error as handled
+            //    }
+            //});
+
+            //CryptoExchange? exchangeData = JsonSerializer
+            //    .Deserialize<CryptoExchange?>(jsonData, serializerOptions);
             if (exchangeData == null)
             {
                 _logger.LogError("Deserialized exchange data is null.");
@@ -88,7 +113,14 @@ public class FileBasedExchangeService : IExchangeService
             }
             _logger.LogInformation("Data loaded successfully.");
             return exchangeData;
+        }
+        catch (Newtonsoft.Json.JsonException jsonEx)
+        {
+            _logger.LogError(
+                jsonEx.Message
 
+            );
+            throw;
         }
         catch (Exception exc)
         {
