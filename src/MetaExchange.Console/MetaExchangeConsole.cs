@@ -13,6 +13,8 @@ public class MetaExchangeConsole
     private readonly ILogger<MetaExchangeConsole> _logger;
     private readonly IOrderBookService _orderBookService;
 
+    readonly static CultureInfo s_culture = CultureInfo.GetCultureInfo("de-DE");
+
     public MetaExchangeConsole(ILogger<MetaExchangeConsole> logger,
         IExchangeService exchangeService,
         IOrderBookService orderBookService)
@@ -152,7 +154,7 @@ public class MetaExchangeConsole
                 (orderNo++).ToString(),
                 orderPlanDetail.CryptoExchangeId,
                 $"{orderPlanDetail.Amount}",
-                $"{orderPlanDetail.Order.Price:C}",
+                $"{orderPlanDetail.Order.Price.ToString("C", s_culture)}",
                 $"{cost:C}"
                 );
         }
@@ -162,14 +164,14 @@ public class MetaExchangeConsole
             "",
             $"{orderPlan.TotalAmount}",
             "",
-            $"{orderPlan.TotalPrice:C}");
+            $"{orderPlan.TotalPrice.ToString("C", s_culture)}");
 
         AnsiConsole.Write(table);
     }
 
     private static void PrintCryptoExchangesTable(CryptoExchange[] cryptoExchanges)
     {
-        CultureInfo culture = CultureInfo.GetCultureInfo("de-DE");
+        
         Table table = new();
 
         table.Border(TableBorder.Rounded);
@@ -188,7 +190,7 @@ public class MetaExchangeConsole
         {
             table.AddRow(
                 cryptoExchange.Id,
-                $"{cryptoExchange.AvailableFunds.Euro.ToString("C", culture)}",
+                $"{cryptoExchange.AvailableFunds.Euro.ToString("C", s_culture)}",
                 $"{cryptoExchange.AvailableFunds.Crypto}",
                 $"{cryptoExchange.OrderBook.Asks.Length}",
                 $"{cryptoExchange.OrderBook.Bids.Length}"
@@ -197,7 +199,7 @@ public class MetaExchangeConsole
         table.AddRow("--", "--", "--", "--", "--");
         table.AddRow(
             "Total",
-            $"{totalEuro.ToString("C", culture)}",
+            $"{totalEuro.ToString("C", s_culture)}",
             $"{totalCrypto}",
             $"{totalAsks}",
             $"{totalBids}");
