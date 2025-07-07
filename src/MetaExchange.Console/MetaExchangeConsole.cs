@@ -78,8 +78,8 @@ public class MetaExchangeConsole
     private async Task ShowBuyOrSellMenu(OrderType orderType)
     {
         string question = orderType == OrderType.Buy
-            ? "Do you want to buy more BTC?"
-            : "Do you want to sell more BTC?";
+            ? "How many BTC do you want to buy?"
+            : "How many BTC do you want to sell?";
 
         decimal amount = AnsiConsole.Prompt(
             new TextPrompt<decimal>($"[green]{question}[/]")
@@ -110,7 +110,7 @@ public class MetaExchangeConsole
 
         if (execute)
         {
-            ExecuteOrderPlanResult executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
+            Result<OrderPlan> executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
             if (executeOrderPlanResult.Successful)
             {
                 AnsiConsole.MarkupLine("[green]Order plan executed successfully![/]");
