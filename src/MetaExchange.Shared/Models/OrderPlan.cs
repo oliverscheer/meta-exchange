@@ -8,6 +8,11 @@ namespace MetaExchange.Shared.Models;
     """)]
 public class OrderPlan
 {
+    public OrderPlan(OrderType orderType)
+    {
+        OrderType = orderType;
+    }
+
     public decimal TotalPrice
     {
         get
@@ -36,6 +41,8 @@ public class OrderPlan
 
     private readonly List<OrderPlanDetail> _orderPlanDetails = [];
     public OrderPlanDetail[] OrderPlanDetails => [.. _orderPlanDetails];
+    public OrderType OrderType{ get; internal set; }
+
 
     public void AddOrderPlanDetail(OrderPlanDetail orderPlanDetail)
     {

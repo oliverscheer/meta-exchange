@@ -1,5 +1,4 @@
 using MetaExchange.Shared.Models;
-using MetaExchange.Shared.Models.Results;
 using MetaExchange.Shared.Services;
 
 namespace MetaExchange.Tests.Services;
@@ -21,15 +20,12 @@ public class TestExchangeService : IExchangeService
         _cryptoExchanges.Add(sampleCryptoExchange);
     }
 
-    public CryptoExchange[] CryptoExchanges { get => _cryptoExchanges.ToArray(); set => new NotImplementedException(); }
+    public CryptoExchange[] CryptoExchanges { get => [.. _cryptoExchanges]; set => new NotImplementedException(); }
     private readonly List<CryptoExchange> _cryptoExchanges = [];
 
-    public Task<CryptoExchangesResult> GetCryptoExchanges()
+    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges()
     {
-        CryptoExchangesResult result = new()
-        {
-            CryptoExchanges = [.. _cryptoExchanges]
-        };
-        return Task.FromResult(result);
+        // Simulate asynchronous behavior to resolve CS1998
+        return await Task.FromResult(new Result<CryptoExchange[]>([.. _cryptoExchanges]));
     }
 }

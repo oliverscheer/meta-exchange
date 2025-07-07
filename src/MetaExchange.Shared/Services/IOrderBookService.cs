@@ -1,12 +1,12 @@
 using MetaExchange.Shared.Models;
-using MetaExchange.Shared.Models.Results;
 
 namespace MetaExchange.Shared.Services;
 public interface IOrderBookService
 {
-    Task<CryptoExchangesResult> GetCryptoExchanges();
-    Task<OrderPlan> CreateBuyPlan(decimal amountOfBtcToBuy);
-    Task<OrderPlan> CreateSellPlan(decimal amountOfBtcToSell);
-    Task<ExecuteOrderPlanResult> ExecuteOrderPlan(OrderPlan orderPlan);
+    Task<Result<CryptoExchange[]>> GetCryptoExchanges();
+    Task<Result<OrderPlan>> CreateBuyPlan(decimal amountOfBtcToBuy);
+    Task<Result<OrderPlan>> CreateSellPlan(decimal amountOfBtcToSell);
+    Task<Result<OrderPlan>> ExecuteOrderPlan(OrderPlan orderPlan);
     void AddAsk(CryptoExchange cryptoExchange, Order order);
+    void AddBid(CryptoExchange cryptoExchange, Order order);
 }

@@ -1,10 +1,10 @@
 using MetaExchange.Shared.Models;
-using MetaExchange.Shared.Models.Results;
 
 namespace MetaExchange.Shared.Services;
+
 public interface IExchangeService
 {
     //CryptoExchange[] CryptoExchanges { get; set; }
 
-    Task<CryptoExchangesResult> GetCryptoExchanges();
+    Task<Result<CryptoExchange[]>> GetCryptoExchanges();
 }

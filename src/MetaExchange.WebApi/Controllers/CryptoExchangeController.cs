@@ -1,5 +1,4 @@
 using MetaExchange.Shared.Models;
-using MetaExchange.Shared.Models.Results;
 using MetaExchange.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,17 +27,18 @@ public class CryptoExchangeController : ControllerBase
     public async Task<IActionResult> GetCryptoExchanges()
     {
         _logger.LogInformation("Get Crypto Exchanges called");
-        CryptoExchangesResult result = await _orderBookService.GetCryptoExchanges();
+        Result<CryptoExchange[]> result = await _orderBookService.GetCryptoExchanges();
+        CryptoExchange[] cryptoExchanges = result.Value;
 
         // Remarks: This can be simplified with OneOf-Library, but that is not used in this project.
 
-        if (result.CryptoExchanges.Length == 0)
+        if (cryptoExchanges.Length == 0)
         {
             _logger.LogWarning("No crypto exchanges found.");
             return NotFound("No crypto exchanges found.");
         }
 
-        IEnumerable<string> reponse = result.CryptoExchanges.Select(ce => ce.Id);
+        IEnumerable<string> reponse = cryptoExchanges.Select(ce => ce.Id);
         return Ok(reponse);
     }
 
@@ -47,8 +47,10 @@ public class CryptoExchangeController : ControllerBase
     public async Task<IActionResult> GetCryptoExchangeById(string id)
     {
         _logger.LogInformation("Get Crypto Exchange by id called");
-        CryptoExchangesResult result = await _orderBookService.GetCryptoExchanges();
-        CryptoExchange? exchange = result.CryptoExchanges.FirstOrDefault(e => e.Id == id);
+        Result<CryptoExchange[]> result = await _orderBookService.GetCryptoExchanges();
+        CryptoExchange[] cryptoExchanges = result.Value;
+
+        CryptoExchange? exchange = cryptoExchanges.FirstOrDefault(e => e.Id == id);
         if (exchange == null)
         {
             _logger.LogWarning($"Crypto exchange with ID {id} not found.");

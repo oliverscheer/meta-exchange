@@ -1,6 +1,5 @@
 using MetaExchange.Shared.Helper;
 using MetaExchange.Shared.Models;
-using MetaExchange.Shared.Models.Results;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Reflection;
@@ -18,7 +17,7 @@ public class FileBasedExchangeService : IExchangeService
         _logger = logger;
     }
 
-    public async Task<CryptoExchangesResult> GetCryptoExchanges()
+    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges()
     {
         if (_cryptoExchanges.Length == 0)
         {
@@ -27,10 +26,8 @@ public class FileBasedExchangeService : IExchangeService
             _cryptoExchanges = await Task.Run(() => LoadDataFromEmbbedFiles());
         }
         _logger.LogInformation("Get Crypto Exchanges called");
-        CryptoExchangesResult result = new()
-        {
-            CryptoExchanges = _cryptoExchanges
-        };
+        
+        Result<CryptoExchange[]> result = new(_cryptoExchanges);
         return result;
     }
 
@@ -82,30 +79,7 @@ public class FileBasedExchangeService : IExchangeService
         {
             _logger.LogInformation("LoadDataFromString");
 
-            //var serializerOptions = new JsonSerializerOptions
-            //{
-            //    PropertyNameCaseInsensitive = false,
-            //};
-
-            //Newtonsoft.Json.JsonConvert.DefaultSettings = () => new Newtonsoft.Json.JsonSerializerSettings
-            //{
-            //    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
-            //};
-
             CryptoExchange? exchangeData = JsonConvert.DeserializeObject<CryptoExchange>(jsonData);
-
-            //CryptoExchange ? exchangeData = JsonConvert.DeserializeObject<CryptoExchange?>(jsonData, new JsonSerializerSettings
-            //{
-            //    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
-            //    Error = (sender, args) =>
-            //    {
-            //        _logger.LogError($"JSON-Deserialisierungsfehler: {args.ErrorContext.Error.Message} (Pfad: {args.ErrorContext.Path})");
-            //        args.ErrorContext.Handled = true; // Mark the error as handled
-            //    }
-            //});
-
-            //CryptoExchange? exchangeData = JsonSerializer
-            //    .Deserialize<CryptoExchange?>(jsonData, serializerOptions);
             if (exchangeData == null)
             {
                 _logger.LogError("Deserialized exchange data is null.");

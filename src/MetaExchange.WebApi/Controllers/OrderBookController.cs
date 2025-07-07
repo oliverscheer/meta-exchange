@@ -26,7 +26,8 @@ public class OrderBookController : ControllerBase
     [Route(ApiRoutes.OrderBook.GetBuyOrderPlan)]
     public async Task<IActionResult> GetBuyOrderPlan(decimal amountOfBtc, bool execute = false)
     {
-        OrderPlan orderPlan = await _orderBookService.CreateBuyPlan(amountOfBtc);
+        Result<OrderPlan> orderPlanResult = await _orderBookService.CreateBuyPlan(amountOfBtc);
+        OrderPlan orderPlan = orderPlanResult.Value;
 
         if (orderPlan.OrderPlanDetails.Length == 0)
         {
@@ -37,7 +38,7 @@ public class OrderBookController : ControllerBase
         // Remark: To make it easier for demoing
         if (execute)
         {
-            ExecuteOrderPlanResult executionResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
+            Result<OrderPlan> executionResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
             if (!executionResult.Successful)
             {
                 _logger.LogError(executionResult.ErrorMessage);
@@ -52,7 +53,8 @@ public class OrderBookController : ControllerBase
     [Route(ApiRoutes.OrderBook.GetSellOrderPlan)]
     public async Task<IActionResult> GetSellOrderPlan(decimal amountOfBtc)
     {
-        OrderPlan orderPlan = await _orderBookService.CreateSellPlan(amountOfBtc);
+        Result<OrderPlan> orderPlanResult = await _orderBookService.CreateSellPlan(amountOfBtc);
+        OrderPlan orderPlan = orderPlanResult.Value;
 
         if (orderPlan.OrderPlanDetails.Length == 0)
         {
@@ -67,7 +69,7 @@ public class OrderBookController : ControllerBase
     [Route(ApiRoutes.OrderBook.ExecuteOrderPlan)]
     public async Task<IActionResult> ExecuteOrderPlan([FromBody] OrderPlan orderPlan)
     {
-        ExecuteOrderPlanResult executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
+        Result<OrderPlan> executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
 
         if (!executeOrderPlanResult.Successful)
         {

@@ -1,4 +1,4 @@
-using MetaExchange.Shared.Models.Results;
+using MetaExchange.Shared.Models;
 using MetaExchange.Shared.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,9 +19,9 @@ public class FileBasedExchangeServiceTests
         // do nothing
 
         // Assert
-        CryptoExchangesResult result = await exchangeService.GetCryptoExchanges();
-        Assert.NotNull(result.CryptoExchanges);
-        Assert.True(result.CryptoExchanges.Length > 0);
+        Result<CryptoExchange[]> result = await exchangeService.GetCryptoExchanges();
+        Assert.NotNull(result.Value);
+        Assert.True(result.Value.Length > 0);
     }
     
 }

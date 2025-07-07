@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text;
 using MetaExchange.Shared.Models;
-using MetaExchange.Shared.Models.Results;
 using MetaExchange.Shared.Services;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
@@ -13,7 +12,7 @@ public class MetaExchangeConsole
     private readonly ILogger<MetaExchangeConsole> _logger;
     private readonly IOrderBookService _orderBookService;
 
-    readonly static CultureInfo s_culture = CultureInfo.GetCultureInfo("de-DE");
+    static readonly CultureInfo s_culture = CultureInfo.GetCultureInfo("de-DE");
 
     public MetaExchangeConsole(ILogger<MetaExchangeConsole> logger,
         IExchangeService exchangeService,
@@ -33,8 +32,8 @@ public class MetaExchangeConsole
         while (!exitRequested)
         {
             PrintHeader();
-            CryptoExchangesResult cryptoExchangeResult = await _orderBookService.GetCryptoExchanges();
-            PrintCryptoExchangesTable(cryptoExchangeResult.CryptoExchanges);
+            Result<CryptoExchange[]> cryptoExchangeResult = await _orderBookService.GetCryptoExchanges();
+            PrintCryptoExchangesTable(cryptoExchangeResult.Value);
 
             string choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -92,17 +91,17 @@ public class MetaExchangeConsole
             : $"You want to sell {amount} BTC.";
         AnsiConsole.MarkupLine($"[green]{feedback}[/]");
 
-        OrderPlan orderPlan;
+        Result<OrderPlan> orderPlanResult;
         if (orderType == OrderType.Buy)
         {
-            orderPlan = await _orderBookService.CreateBuyPlan(amount);
+            orderPlanResult = await _orderBookService.CreateBuyPlan(amount);
         }
         else
         {
-            orderPlan = await _orderBookService.CreateSellPlan(amount);
+            orderPlanResult = await _orderBookService.CreateSellPlan(amount);
         }
 
-        ShowOrderPlanTable(orderType, orderPlan);
+        ShowOrderPlanTable(orderType, orderPlanResult);
 
         bool execute = AnsiConsole.Prompt(
             new ConfirmationPrompt("Do you want to execute order plan?"));
@@ -110,7 +109,7 @@ public class MetaExchangeConsole
 
         if (execute)
         {
-            Result<OrderPlan> executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlan);
+            Result<OrderPlan> executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlanResult.Value);
             if (executeOrderPlanResult.Successful)
             {
                 AnsiConsole.MarkupLine("[green]Order plan executed successfully![/]");
@@ -123,7 +122,7 @@ public class MetaExchangeConsole
         }
     }
 
-    private static void ShowOrderPlanTable(OrderType orderType, OrderPlan orderPlan)
+    private static void ShowOrderPlanTable(OrderType orderType, Result<OrderPlan> orderPlanResult)
     {
         AnsiConsole.MarkupLine(
             orderType == OrderType.Buy
@@ -141,6 +140,19 @@ public class MetaExchangeConsole
 
         int orderNo = 0;
 
+        if (!orderPlanResult.Successful)
+        {
+            AnsiConsole.MarkupLine($"[red]Error: {orderPlanResult.ErrorMessage}[/]");
+            PressAnyKeyToContinue();
+            return;
+        }
+
+        foreach (string waring in orderPlanResult.Warnings)
+        {
+            AnsiConsole.MarkupLine($"[yellow]Warning: {waring}[/]");
+        }
+
+        OrderPlan orderPlan = orderPlanResult.Value;
         if (orderPlan.OrderPlanDetails.Length == 0)
         {
             AnsiConsole.MarkupLine("[red]No orders found for this plan.[/]");
