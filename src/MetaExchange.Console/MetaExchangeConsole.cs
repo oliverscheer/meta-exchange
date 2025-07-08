@@ -15,7 +15,6 @@ public class MetaExchangeConsole
     static readonly CultureInfo s_culture = CultureInfo.GetCultureInfo("de-DE");
 
     public MetaExchangeConsole(ILogger<MetaExchangeConsole> logger,
-        IExchangeService exchangeService,
         IOrderBookService orderBookService)
     {
         _logger = logger;
@@ -28,11 +27,25 @@ public class MetaExchangeConsole
 
         _logger.LogInformation("Console App started.");
 
+        CancellationTokenSource cts = new CancellationTokenSource();
+        CancellationToken token = cts.Token;
+
         bool exitRequested = false;
         while (!exitRequested)
         {
             PrintHeader();
-            Result<CryptoExchange[]> cryptoExchangeResult = await _orderBookService.GetCryptoExchanges();
+            Result<CryptoExchange[]> cryptoExchangeResult = await _orderBookService.GetCryptoExchanges(token);
+            if (cryptoExchangeResult.Value is null ||
+                cryptoExchangeResult.Value.Length == 0 ||
+                !cryptoExchangeResult.Successful
+                )
+            {
+                AnsiConsole.MarkupLine($"[red]Error: No Data available[/]");
+                PressAnyKeyToContinue();
+                continue;
+
+            }
+
             PrintCryptoExchangesTable(cryptoExchangeResult.Value);
 
             string choice = AnsiConsole.Prompt(
@@ -44,11 +57,11 @@ public class MetaExchangeConsole
             switch (choice)
             {
                 case "Buy":
-                    await ShowBuyOrSellMenu(OrderType.Buy);
+                    await ShowBuyOrSellMenu(OrderType.Buy, token);
                     break;
 
                 case "Sell":
-                    await ShowBuyOrSellMenu(OrderType.Sell);
+                    await ShowBuyOrSellMenu(OrderType.Sell, token);
                     break;
 
                 case "Exit":
@@ -74,7 +87,7 @@ public class MetaExchangeConsole
         AnsiConsole.MarkupLine("[blue]By oliver.scheer@adesso.de[/]", new Style(Color.Red));
     }
 
-    private async Task ShowBuyOrSellMenu(OrderType orderType)
+    private async Task ShowBuyOrSellMenu(OrderType orderType, CancellationToken cancellationToken)
     {
         string question = orderType == OrderType.Buy
             ? "How many BTC do you want to buy?"
@@ -94,12 +107,22 @@ public class MetaExchangeConsole
         Result<OrderPlan> orderPlanResult;
         if (orderType == OrderType.Buy)
         {
-            orderPlanResult = await _orderBookService.CreateBuyPlan(amount);
+            orderPlanResult = await _orderBookService.CreateBuyPlan(amount, cancellationToken);
         }
         else
         {
-            orderPlanResult = await _orderBookService.CreateSellPlan(amount);
+            orderPlanResult = await _orderBookService.CreateSellPlan(amount, cancellationToken);
         }
+
+        if (!orderPlanResult.Successful ||
+            orderPlanResult.Value is null)
+        {
+            AnsiConsole.MarkupLine("[red]Failed to create order plan.[/]");
+            PressAnyKeyToContinue();
+            return;
+        }
+
+        OrderPlan orderPlan = orderPlanResult.Value;
 
         ShowOrderPlanTable(orderType, orderPlanResult);
 
@@ -109,7 +132,7 @@ public class MetaExchangeConsole
 
         if (execute)
         {
-            Result<OrderPlan> executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlanResult.Value);
+            Result<OrderPlan> executeOrderPlanResult = await _orderBookService.ExecuteOrderPlan(orderPlan, cancellationToken);
             if (executeOrderPlanResult.Successful)
             {
                 AnsiConsole.MarkupLine("[green]Order plan executed successfully![/]");
@@ -129,11 +152,22 @@ public class MetaExchangeConsole
                 ? "[green]Order Plan for Buying BTC[/]"
                 : "[red]Order Plan for Selling BTC[/]");
 
+        if (orderPlanResult.Value is null ||
+            orderPlanResult.Value.OrderPlanDetails.Length == 0)
+        {
+            AnsiConsole.MarkupLine("[red]No orders found for this plan.[/]");
+            return;
+        }
+
+        OrderPlan orderPlan = orderPlanResult.Value;
+
         Table table = new();
-        
+
         table.Border(TableBorder.Rounded);
         table.AddColumn(new TableColumn("No").RightAligned());
         table.AddColumn("Exchange");
+        table.AddColumn("Order Kind");
+        table.AddColumn(("Time"));
         table.AddColumn(new TableColumn("Amount").RightAligned());
         table.AddColumn(new TableColumn("Price").RightAligned());
         table.AddColumn(new TableColumn("Sum").RightAligned());
@@ -152,19 +186,14 @@ public class MetaExchangeConsole
             AnsiConsole.MarkupLine($"[yellow]Warning: {waring}[/]");
         }
 
-        OrderPlan orderPlan = orderPlanResult.Value;
-        if (orderPlan.OrderPlanDetails.Length == 0)
-        {
-            AnsiConsole.MarkupLine("[red]No orders found for this plan.[/]");
-            return;
-        }
-
         foreach (OrderPlanDetail orderPlanDetail in orderPlan.OrderPlanDetails)
         {
             decimal cost = orderPlanDetail.Order.Price * orderPlanDetail.Amount;
             table.AddRow(
                 (orderNo++).ToString(),
                 orderPlanDetail.CryptoExchangeId,
+                orderPlanDetail.Order.Kind.ToString(),
+                $"{orderPlanDetail.Order.Time.ToShortTimeString()} {orderPlanDetail.Order.Time.ToShortDateString()}",
                 $"{orderPlanDetail.Amount}",
                 $"{orderPlanDetail.Order.Price.ToString("C", s_culture)}",
                 $"{cost:C}"
@@ -183,7 +212,7 @@ public class MetaExchangeConsole
 
     private static void PrintCryptoExchangesTable(CryptoExchange[] cryptoExchanges)
     {
-        
+
         Table table = new();
 
         table.Border(TableBorder.Rounded);

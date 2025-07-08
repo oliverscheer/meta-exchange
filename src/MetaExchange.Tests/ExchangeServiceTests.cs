@@ -13,15 +13,14 @@ public class FileBasedExchangeServiceTests
     {
         // Arrange
         Mock<ILogger<FileBasedExchangeService>> mockLogger = new();
-        IExchangeService exchangeService = new FileBasedExchangeService(mockLogger.Object);
+        FileBasedExchangeService exchangeService = new(mockLogger.Object);
+        CancellationToken cancellationToken = CancellationToken.None;
 
         // Act
-        // do nothing
+        Result<CryptoExchange[]> result = await exchangeService.GetCryptoExchanges(cancellationToken);
 
         // Assert
-        Result<CryptoExchange[]> result = await exchangeService.GetCryptoExchanges();
         Assert.NotNull(result.Value);
         Assert.True(result.Value.Length > 0);
     }
-    
 }

@@ -17,16 +17,15 @@ public class FileBasedExchangeService : IExchangeService
         _logger = logger;
     }
 
-    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges()
+    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges(CancellationToken cancellationToken)
     {
         if (_cryptoExchanges.Length == 0)
         {
             _logger.LogInformation("CryptoExchanges is null. Loading data from embedded files.");
-            // Use Task.Run to make the method asynchronous and avoid the CS1998 warning.
-            _cryptoExchanges = await Task.Run(() => LoadDataFromEmbbedFiles());
+            _cryptoExchanges = await Task.Run(LoadDataFromEmbbedFiles, cancellationToken);
         }
         _logger.LogInformation("Get Crypto Exchanges called");
-        
+
         Result<CryptoExchange[]> result = new(_cryptoExchanges);
         return result;
     }
@@ -87,14 +86,6 @@ public class FileBasedExchangeService : IExchangeService
             }
             _logger.LogInformation("Data loaded successfully.");
             return exchangeData;
-        }
-        catch (Newtonsoft.Json.JsonException jsonEx)
-        {
-            _logger.LogError(
-                jsonEx.Message
-
-            );
-            throw;
         }
         catch (Exception exc)
         {

@@ -8,7 +8,7 @@ public class TestExchangeService : IExchangeService
     {
         CryptoExchange sampleCryptoExchange = new()
         {
-            AvailableFunds = new Availablefunds()
+            AvailableFunds = new AvailableFunds()
             {
                 Euro = initEuro,
                 Crypto = initCrypto
@@ -20,12 +20,13 @@ public class TestExchangeService : IExchangeService
         _cryptoExchanges.Add(sampleCryptoExchange);
     }
 
-    public CryptoExchange[] CryptoExchanges { get => [.. _cryptoExchanges]; set => new NotImplementedException(); }
-    private readonly List<CryptoExchange> _cryptoExchanges = [];
+    public CryptoExchange[] CryptoExchanges { get => [.. _cryptoExchanges]; set => _cryptoExchanges = [.. value]; }
+    private List<CryptoExchange> _cryptoExchanges = [];
 
-    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges()
+    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges(CancellationToken cancellationToken)
     {
-        // Simulate asynchronous behavior to resolve CS1998
         return await Task.FromResult(new Result<CryptoExchange[]>([.. _cryptoExchanges]));
     }
+
+
 }

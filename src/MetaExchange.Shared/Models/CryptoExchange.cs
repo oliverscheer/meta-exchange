@@ -9,8 +9,8 @@ namespace MetaExchange.Shared.Models;
 public class CryptoExchange
 {
     public required string Id { get; init; }
-    public required Availablefunds AvailableFunds { get; set; }
+    public required AvailableFunds AvailableFunds { get; set; }
     public required Orderbook OrderBook { get; set; }
 
-    
+
 }

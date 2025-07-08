@@ -6,17 +6,16 @@ public static class ApiRoutes
 
     public static class CryptoExchanges
     {
-        private const string Root = ApiRoutes.Root + "cryptoexchange";
-        public const string GetAll = Root;
-        public const string GetExchangeById = Root + "/id";
+        private const string CryptoExchangesRoot = ApiRoutes.Root + "cryptoexchange";
+        public const string GetAll = CryptoExchangesRoot;
+        public const string GetExchangeById = CryptoExchangesRoot + "/id";
     }
 
     public static class OrderBook
     {
-        private const string Root = ApiRoutes.Root + "orderbook";
-        public const string GetBuyOrderPlan = Root + "/buyplan";
-        public const string GetSellOrderPlan = Root + "/sellplan";
-        //public const string GetOrderBook = Root + "/{exchangeId}";
-        public const string ExecuteOrderPlan = Root + "/execute";
+        private const string OrderBookRoot = Root + "orderbook";
+        public const string GetBuyOrderPlan = OrderBookRoot + "/buyplan";
+        public const string GetSellOrderPlan = OrderBookRoot + "/sellplan";
+        public const string ExecuteOrderPlan = OrderBookRoot + "/execute";
     }
 }

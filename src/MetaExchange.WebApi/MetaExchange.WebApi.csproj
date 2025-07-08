@@ -18,8 +18,4 @@
     <ProjectReference Include="..\MetaExchange.Shared\MetaExchange.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 </Project>

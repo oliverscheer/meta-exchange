@@ -43,10 +43,8 @@ public class OrderPlan
     public OrderPlanDetail[] OrderPlanDetails => [.. _orderPlanDetails];
     public OrderType OrderType{ get; internal set; }
 
-
     public void AddOrderPlanDetail(OrderPlanDetail orderPlanDetail)
     {
         _orderPlanDetails.Add(orderPlanDetail);
-        decimal price = orderPlanDetail.Order.Price * orderPlanDetail.Amount;
     }
 }

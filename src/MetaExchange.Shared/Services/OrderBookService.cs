@@ -2,35 +2,26 @@ using MetaExchange.Shared.Models;
 using Microsoft.Extensions.Logging;
 
 namespace MetaExchange.Shared.Services;
-public class OrderBookService : IOrderBookService
+public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBookService> logger)
+    : IOrderBookService
 {
-    private readonly IExchangeService _exchangeService;
-
-    private readonly ILogger<OrderBookService> _logger;
-
-    public OrderBookService(IExchangeService exchangeService, ILogger<OrderBookService> logger)
+    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges(CancellationToken cancellationToken)
     {
-        _exchangeService = exchangeService;
-        _logger = logger;
+        return await exchangeService.GetCryptoExchanges(cancellationToken);
     }
 
-    public async Task<Result<CryptoExchange[]>> GetCryptoExchanges()
+    public async Task<Result<OrderPlan>> CreateBuyPlan(decimal amountOfBtcToBuy, CancellationToken cancellationToken)
     {
-        return await _exchangeService.GetCryptoExchanges();
-    }
-
-    public async Task<Result<OrderPlan>> CreateBuyPlan(decimal amountOfBtcToBuy)
-    {
-        _logger.LogInformation($"Create buying plan for {amountOfBtcToBuy}");
+        logger.LogInformation($"Create buying plan for {amountOfBtcToBuy}");
         OrderPlan orderPlan = new(OrderType.Buy);
         Result<OrderPlan> result = new(orderPlan);
 
         decimal remainingAmountOfBtcToBuy = amountOfBtcToBuy;
 
-        Result<CryptoExchange[]> cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
+        Result<CryptoExchange[]> cryptoExchangesResult = await exchangeService.GetCryptoExchanges(cancellationToken);
         if (!cryptoExchangesResult.Successful)
         {
-            _logger.LogError("Failed to get crypto exchanges.");
+            logger.LogError("Failed to get crypto exchanges.");
             throw new InvalidOperationException("Failed to get crypto exchanges.");
         }
 
@@ -60,7 +51,7 @@ public class OrderBookService : IOrderBookService
             if (!checkResult.Successful)
             {
                 result.AddWarning(checkResult.ErrorMessage);
-                _logger.LogWarning($"Order plan check failed: {checkResult.ErrorMessage}");
+                logger.LogWarning($"Order plan check failed: {checkResult.ErrorMessage}");
                 continue;
             }
 
@@ -70,17 +61,17 @@ public class OrderBookService : IOrderBookService
         return result;
     }
 
-    public async Task<Result<OrderPlan>> CreateSellPlan(decimal amountOfBtcToSell)
+    public async Task<Result<OrderPlan>> CreateSellPlan(decimal amountOfBtcToSell, CancellationToken cancellationToken)
     {
-        
-        _logger.LogInformation($"Create selling plan for {amountOfBtcToSell} BTC.");
+
+        logger.LogInformation($"Create selling plan for {amountOfBtcToSell} BTC.");
 
         OrderPlan orderPlan = new(OrderType.Sell);
         Result<OrderPlan> result = new(orderPlan);
 
         decimal remainingAmountOfBtcToSell = amountOfBtcToSell;
 
-        Result<CryptoExchange[]> cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
+        Result<CryptoExchange[]> cryptoExchangesResult = await exchangeService.GetCryptoExchanges(cancellationToken);
 
         List<Bid> bids = [.. cryptoExchangesResult.Value!
             .SelectMany(exchange => exchange.OrderBook.Bids)
@@ -114,7 +105,7 @@ public class OrderBookService : IOrderBookService
             orderPlan.AddOrderPlanDetail(newOrderPlanDetail);
             remainingAmountOfBtcToSell -= tradeAmountOfBtc;
         }
-        
+
         return result;
     }
 
@@ -146,35 +137,33 @@ public class OrderBookService : IOrderBookService
             }
         }
 
-        // Check if the estimated values allow a buy or sell
-        if (orderPlan.OrderType == OrderType.Buy)
+        switch (orderPlan.OrderType)
         {
-            // Can only buy with existing money
-            decimal price = orderPlanDetail.Amount * orderPlanDetail.Order.Price;
-            if (estimatedEuroForCryptoExchange < price)
+            // Check if the estimated values allow a buy or sell
+            case OrderType.Buy:
             {
+                // Can only buy with existing money
+                decimal price = orderPlanDetail.Amount * orderPlanDetail.Order.Price;
+                if (estimatedEuroForCryptoExchange >= price)
+                {
+                    return result;
+                }
+
                 result.AddError($"You don't have {price} Euro to buy the crypto in Exchange: '{cryptoExchange.Id}");
                 return result;
             }
-        }
-        else if (orderPlan.OrderType == OrderType.Sell)
-        {
             // Can only sell with existing crypto
-            if (estimatedCryptoForCryptoExchange < orderPlanDetail.Amount)
-            {
+            case OrderType.Sell when estimatedCryptoForCryptoExchange >= orderPlanDetail.Amount:
+                return result;
+            case OrderType.Sell:
                 result.AddError($"You don't have enough Crypto to sell on exchange {cryptoExchange.Id}.");
                 return result;
-            }
+            default:
+                throw new Exception($"Unknown order type: {orderPlanDetail.Order.Type}");
         }
-        else
-        {
-            throw new Exception($"Unknown order type: {orderPlanDetail.Order.Type}");
-        }
+    }
 
-        return result;
-    } 
-
-    public async Task<Result<OrderPlan>> ExecuteOrderPlan(OrderPlan orderPlan)
+    public async Task<Result<OrderPlan>> ExecuteOrderPlan(OrderPlan orderPlan, CancellationToken cancellationToken)
     {
         Result<OrderPlan> result = new();
         if (orderPlan.OrderPlanDetails.Length == 0)
@@ -183,7 +172,14 @@ public class OrderBookService : IOrderBookService
             return result;
         }
 
-        Result<CryptoExchange[]> cryptoExchangesResult = await _exchangeService.GetCryptoExchanges();
+        Result<CryptoExchange[]> cryptoExchangesResult = await exchangeService.GetCryptoExchanges(cancellationToken);
+
+        if (!cryptoExchangesResult.Successful ||
+            cryptoExchangesResult.Value is null)
+        {
+            result.AddError("Failed to get crypto exchanges.");
+            return result;
+        }
 
         foreach (OrderPlanDetail orderPlanDetail in orderPlan.OrderPlanDetails)
         {
@@ -192,76 +188,83 @@ public class OrderBookService : IOrderBookService
                 ?? throw new InvalidOperationException($"Crypto exchange with ID {orderPlanDetail.CryptoExchangeId} not found.");
 
             Order order = orderPlanDetail.Order;
-            if (orderPlan.OrderType == OrderType.Buy)
+            switch (orderPlan.OrderType)
             {
-                // I'm buying from a bid
-                // so we need to reduce crypto exchange funds
-                // and add increase euro funds
-                cryptoExchange.AvailableFunds.Crypto += orderPlanDetail.Amount;
-                cryptoExchange.AvailableFunds.Euro -= order.Price * orderPlanDetail.Amount;
-
-                if (order.Amount > orderPlanDetail.Amount)
+                case OrderType.Buy:
                 {
-                    // Reduce amount in bid order
-                    order.Amount -= orderPlanDetail.Amount;
-                }
-                else
-                {
-                    // remove ask order
-                    Ask askOrderToRemove = cryptoExchange.OrderBook.Asks
-                        .FirstOrDefault(b => b.Order.Id == order.Id)
-                        ?? throw new InvalidOperationException("Ask order to remove not found in the order book.");
+                    // I'm buying from a bid
+                    // so we need to reduce crypto exchange funds
+                    // and add increase euro funds
+                    cryptoExchange.AvailableFunds.Crypto += orderPlanDetail.Amount;
+                    cryptoExchange.AvailableFunds.Euro -= order.Price * orderPlanDetail.Amount;
 
-                    // Update Orderbook
-                    List<Ask> asks = [.. cryptoExchange.OrderBook.Asks];
-                    asks.Remove(askOrderToRemove);
-                    cryptoExchange.OrderBook = new Orderbook
+                    if (order.Amount > orderPlanDetail.Amount)
                     {
-                        Bids = cryptoExchange.OrderBook.Bids,
-                        Asks = [.. asks]
-                    };
-                }
-            }
-            else if (orderPlan.OrderType == OrderType.Sell)
-            {
-                // I'm selling to an ask
-                // so we need to increase crypto exchange funds
-                // and reduce euro funds
-                cryptoExchange.AvailableFunds.Crypto -= orderPlanDetail.Amount;
-                cryptoExchange.AvailableFunds.Euro += order.Price * orderPlanDetail.Amount; ;
-
-                if (order.Amount > orderPlanDetail.Amount)
-                {
-                    // Reduce order
-                    order.Amount -= orderPlanDetail.Amount;
-                }
-                else
-                {
-                    // Remove bid order completely
-                    Bid? bidOrderToRemove = cryptoExchange.OrderBook.Bids
-                        .FirstOrDefault(b => b.Order.Id == order.Id);
-
-                    if (bidOrderToRemove is null)
+                        // Reduce amount in bid order
+                        order.Amount -= orderPlanDetail.Amount;
+                    }
+                    else
                     {
-                        result.AddError("Bid order to remove not found in the order book.");
-                        return result;
+                        // remove ask order
+                        Ask askOrderToRemove = cryptoExchange.OrderBook.Asks
+                                                   .FirstOrDefault(b => b.Order.Id == order.Id)
+                                               ?? throw new InvalidOperationException("Ask order to remove not found in the order book.");
+
+                        // Update Orderbook
+                        List<Ask> asks = [.. cryptoExchange.OrderBook.Asks];
+                        asks.Remove(askOrderToRemove);
+                        cryptoExchange.OrderBook = new Orderbook
+                        {
+                            Bids = cryptoExchange.OrderBook.Bids,
+                            Asks = [.. asks]
+                        };
                     }
 
-                    // Update Orderbook
-                    List<Bid> bids = [.. cryptoExchange.OrderBook.Bids];
-                    bids.Remove(bidOrderToRemove);
-                    cryptoExchange.OrderBook = new Orderbook
-                    {
-                        Bids = [.. bids],
-                        Asks = cryptoExchange.OrderBook.Asks
-                    };
+                    break;
                 }
-            }
-            else
-            {
-                string errorMessage = $"Unknown order type: {order.Type}";
-                result.AddError(errorMessage);
-                return result;
+                case OrderType.Sell:
+                {
+                    // I'm selling to an ask,
+                    // so we need to increase crypto exchange funds
+                    // and reduce euro funds
+                    cryptoExchange.AvailableFunds.Crypto -= orderPlanDetail.Amount;
+                    cryptoExchange.AvailableFunds.Euro += order.Price * orderPlanDetail.Amount;
+
+                    if (order.Amount > orderPlanDetail.Amount)
+                    {
+                        // Reduce order
+                        order.Amount -= orderPlanDetail.Amount;
+                    }
+                    else
+                    {
+                        // Remove bid order completely
+                        Bid? bidOrderToRemove = cryptoExchange.OrderBook.Bids
+                            .FirstOrDefault(b => b.Order.Id == order.Id);
+
+                        if (bidOrderToRemove is null)
+                        {
+                            result.AddError("Bid order to remove not found in the order book.");
+                            return result;
+                        }
+
+                        // Update Order book
+                        List<Bid> bids = [.. cryptoExchange.OrderBook.Bids];
+                        bids.Remove(bidOrderToRemove);
+                        cryptoExchange.OrderBook = new Orderbook
+                        {
+                            Bids = [.. bids],
+                            Asks = cryptoExchange.OrderBook.Asks
+                        };
+                    }
+
+                    break;
+                }
+                default:
+                {
+                    string errorMessage = $"Unknown order type: {order.Type}";
+                    result.AddError(errorMessage);
+                    return result;
+                }
             }
         }
         return result;
@@ -270,8 +273,11 @@ public class OrderBookService : IOrderBookService
     public void AddAsk(CryptoExchange cryptoExchange, Order order)
     {
         Ask ask = new() { Order = order };
-        List<Ask> asks = [.. cryptoExchange.OrderBook.Asks];
-        asks.Add(ask);
+        List<Ask> asks =
+        [
+            .. cryptoExchange.OrderBook.Asks,
+            ask
+        ];
         cryptoExchange.OrderBook = new Orderbook()
         {
             Bids = cryptoExchange.OrderBook.Bids,
@@ -282,13 +288,15 @@ public class OrderBookService : IOrderBookService
     public void AddBid(CryptoExchange cryptoExchange, Order order)
     {
         Bid bid = new() { Order = order };
-        List<Bid> bids = [.. cryptoExchange.OrderBook.Bids];
-        bids.Add(bid);
+        List<Bid> bids =
+        [
+            .. cryptoExchange.OrderBook.Bids,
+            bid
+        ];
         cryptoExchange.OrderBook = new Orderbook()
         {
             Asks = cryptoExchange.OrderBook.Asks,
             Bids = [.. bids]
         };
     }
-
 }

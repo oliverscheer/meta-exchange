@@ -2,13 +2,8 @@ namespace MetaExchange.Shared.Models;
 
 public class Result
 {
-    public Result()
-    {
-
-    }
-
-    public bool Successful { get; internal set; } = true;
-    public string ErrorMessage { get; internal set; } = string.Empty;
+    public bool Successful { get; private set; } = true;
+    public string ErrorMessage { get; private set; } = string.Empty;
 
     private readonly List<string> _warnings = [];
     public IReadOnlyList<string> Warnings => _warnings.AsReadOnly();
@@ -25,7 +20,7 @@ public class Result
     }
 }
 
-public class Result<T> : Result
+public class Result<T> : Result where T : notnull
 {
     public Result()
     {
@@ -36,11 +31,10 @@ public class Result<T> : Result
         SetValue(value);
     }
 
-    public T Value { get; private set; } = default!; 
+    public T? Value { get; private set; }
 
-    public void SetValue(T value)
+    private void SetValue(T value)
     {
         Value = value;
     }
-
 }

@@ -6,7 +6,7 @@ namespace MetaExchange.Shared.Models;
     Crypto: {Crypto},
     Euro: {Euro} €
     """)]
-public class Availablefunds
+public class AvailableFunds
 {
     public decimal Crypto { get; set; }
     public decimal Euro { get; set; }
