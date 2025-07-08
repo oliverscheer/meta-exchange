@@ -45,7 +45,7 @@ public class OrderBookServiceTests
         CancellationToken cancellationToken = CancellationToken.None;
 
         // Act
-        decimal amountOfBtc = 3.00M;
+        const decimal amountOfBtc = 3.00M;
 
         Result<OrderPlan> orderPlanresult = await orderBookService.CreateBuyPlan(amountOfBtc, cancellationToken);
         OrderPlan orderPlan = orderPlanresult.Value!;
@@ -100,7 +100,7 @@ public class OrderBookServiceTests
         Result<CryptoExchange[]> cryptoExchangeResult = await orderBookService.GetCryptoExchanges(cancellationToken);
         orderBookService.AddAsk(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Ask Order - 1",
                 Amount = 3.00M,
@@ -111,7 +111,8 @@ public class OrderBookServiceTests
             });
 
         // Create an order plan to buy 3 BTC
-        decimal amountOfBtc = 3.00M;
+        const decimal amountOfBtc = 3.00M;
+
         Result<OrderPlan> orderPlanresult = await orderBookService.CreateBuyPlan(amountOfBtc, cancellationToken);
         OrderPlan orderPlan = orderPlanresult.Value!;
         Assert.NotNull(orderPlan);
@@ -152,8 +153,8 @@ public class OrderBookServiceTests
 
         // Create an exchange
         // - with 10 btc
-        decimal initEuro = 0.00M;
-        decimal initCrypto = 10.00M;
+        const decimal initEuro = 0.00M;
+        const decimal initCrypto = 10.00M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
 
         Mock<ILogger<OrderBookService>> mockOrderBookServiceLogger = new();
@@ -165,7 +166,7 @@ public class OrderBookServiceTests
         Result<CryptoExchange[]> cryptoExchangeResult = await orderBookService.GetCryptoExchanges(cancellationToken);
         orderBookService.AddBid(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Bid Order 1",
                 Amount = 10.00M,
@@ -176,7 +177,7 @@ public class OrderBookServiceTests
             });
 
         // Act
-        decimal amountOfBtc = 10.00M;
+        const decimal amountOfBtc = 10.00M;
 
         Result<OrderPlan> orderPlanResult = await orderBookService.CreateSellPlan(amountOfBtc, cancellationToken);
         Assert.True(orderPlanResult.Successful, orderPlanResult.ErrorMessage);
@@ -214,8 +215,8 @@ public class OrderBookServiceTests
         // Arrange
 
         // Create an exchange
-        decimal initEuro = 0M;
-        decimal initCrypto = 1M;
+        const decimal initEuro = 0M;
+        const decimal initCrypto = 1M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
 
         // Create orderBookService
@@ -230,7 +231,7 @@ public class OrderBookServiceTests
         // Create ask to buy btc
         orderBookService.AddBid(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Bid Order 1",
                 Amount = 1.50M,
@@ -264,8 +265,8 @@ public class OrderBookServiceTests
         //
 
         // Create an exchange
-        decimal initEuro = 0M;
-        decimal initCrypto = 1M;
+        const decimal initEuro = 0M;
+        const decimal initCrypto = 1M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
 
         // Create orderBookService
@@ -279,7 +280,7 @@ public class OrderBookServiceTests
         // Create Asks in orderbook to Sell btc
         orderBookService.AddBid(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Ask Order 1",
                 Amount = 1.00M,
@@ -311,8 +312,8 @@ public class OrderBookServiceTests
         // Arrange
 
         // Create an exchange
-        decimal initEuro = 0M;
-        decimal initCrypto = 1M;
+        const decimal initEuro = 0M;
+        const decimal initCrypto = 1M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
 
         // Create orderBookService
@@ -325,7 +326,7 @@ public class OrderBookServiceTests
         // Create Asks in orderbook to Sell btc
         orderBookService.AddBid(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Ask Order 1",
                 Amount = initCrypto * 2,
@@ -361,8 +362,8 @@ public class OrderBookServiceTests
         //
 
         // Create an exchange
-        decimal initEuro = 10000.0M;
-        decimal initCrypto = 0M;
+        const decimal initEuro = 10000.0M;
+        const decimal initCrypto = 0M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
 
         // Create orderBookService
@@ -378,14 +379,13 @@ public class OrderBookServiceTests
         //
 
         // Create bid in orderbook to sell 1 btc
-        decimal bidPrice = initEuro;
         orderBookService.AddAsk(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Ask Order - 1",
                 Amount = 1.00M,
-                Price = bidPrice,
+                Price = initEuro,
                 Type = OrderType.Sell,
                 Time = DateTime.Now,
                 Kind = OrderKind.Limit
@@ -424,8 +424,8 @@ public class OrderBookServiceTests
         //
 
         // Create an exchange
-        decimal initEuro = 10000.0M;
-        decimal initCrypto = 0M;
+        const decimal initEuro = 10000.0M;
+        const decimal initCrypto = 0M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
 
         // Create orderBookService
@@ -441,10 +441,10 @@ public class OrderBookServiceTests
         //
 
         // Create bid in orderbook to sell 1 btc
-        decimal bidPrice = initEuro * 2;
+        const decimal bidPrice = initEuro * 2;
         orderBookService.AddBid(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Bid Order - 1",
                 Amount = 1.00M,
@@ -489,11 +489,9 @@ public class OrderBookServiceTests
         //
 
         // Create exchange
-        decimal initEuro = 10000.0M;
-        decimal initCrypto = 5.0M;
+        const decimal initEuro = 10000.0M;
+        const decimal initCrypto = 5.0M;
         IExchangeService exchangeService = new TestExchangeService(initEuro, initCrypto);
-
-        decimal bidPrice = initEuro;
 
         // Create orderBookService
         Mock<ILogger<OrderBookService>> mockOrderBookServiceLogger = new();
@@ -510,11 +508,11 @@ public class OrderBookServiceTests
         Assert.NotNull(cryptoExchangeResult);
         orderBookService.AddAsk(
             cryptoExchangeResult.Value![0],
-            new Order()
+            new Order
             {
                 Id = "New Ask Order - 1",
                 Amount = 3000.00M,
-                Price = bidPrice,
+                Price = initEuro,
                 Type = OrderType.Buy,
                 Time = DateTime.Now,
                 Kind = OrderKind.Limit

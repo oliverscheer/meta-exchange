@@ -27,32 +27,35 @@ public class MetaExchangeConsole
 
         _logger.LogInformation("Console App started.");
 
-        CancellationTokenSource cts = new CancellationTokenSource();
+        CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
 
         bool exitRequested = false;
+
+        Result<CryptoExchange[]> cryptoExchangeResult = await _orderBookService.GetCryptoExchanges(token);
+
         while (!exitRequested)
         {
             PrintHeader();
-            Result<CryptoExchange[]> cryptoExchangeResult = await _orderBookService.GetCryptoExchanges(token);
+
             if (cryptoExchangeResult.Value is null ||
                 cryptoExchangeResult.Value.Length == 0 ||
                 !cryptoExchangeResult.Successful
                 )
             {
-                AnsiConsole.MarkupLine($"[red]Error: No Data available[/]");
+                AnsiConsole.MarkupLine("[red]Error: No Data available[/]");
                 PressAnyKeyToContinue();
                 continue;
-
             }
+            CryptoExchange[] cryptoExchanges = cryptoExchangeResult.Value;
 
-            PrintCryptoExchangesTable(cryptoExchangeResult.Value);
+            PrintCryptoExchangesTable(cryptoExchanges);
 
             string choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("Choose an option:")
-                    .PageSize(10)
-                    .AddChoices(["Buy", "Sell", "Exit"]));
+            new SelectionPrompt<string>()
+                .Title("Choose an option:")
+                .PageSize(10)
+                .AddChoices("Buy", "Sell", "Exit"));
 
             switch (choice)
             {
@@ -203,6 +206,8 @@ public class MetaExchangeConsole
         table.AddRow(
             "Sum",
             "",
+            "",
+            "",
             $"{orderPlan.TotalAmount}",
             "",
             $"{orderPlan.TotalPrice.ToString("C", s_culture)}");
@@ -212,7 +217,6 @@ public class MetaExchangeConsole
 
     private static void PrintCryptoExchangesTable(CryptoExchange[] cryptoExchanges)
     {
-
         Table table = new();
 
         table.Border(TableBorder.Rounded);

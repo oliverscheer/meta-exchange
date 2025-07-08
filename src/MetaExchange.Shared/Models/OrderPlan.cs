@@ -17,12 +17,7 @@ public class OrderPlan
     {
         get
         {
-            decimal totalPrice = 0;
-            foreach (OrderPlanDetail orderPlanDetail in _orderPlanDetails)
-            {
-                totalPrice += orderPlanDetail.Order.Price * orderPlanDetail.Amount;
-            }
-            return totalPrice;
+            return _orderPlanDetails.Sum(orderPlanDetail => orderPlanDetail.Order.Price * orderPlanDetail.Amount);
         }
     }
 
@@ -30,18 +25,13 @@ public class OrderPlan
     {
         get
         {
-            decimal totalAmount = 0;
-            foreach (OrderPlanDetail orderPlanDetail in _orderPlanDetails)
-            {
-                totalAmount += orderPlanDetail.Amount;
-            }
-            return totalAmount;
+            return _orderPlanDetails.Sum(orderPlanDetail => orderPlanDetail.Amount);
         }
     }
 
     private readonly List<OrderPlanDetail> _orderPlanDetails = [];
     public OrderPlanDetail[] OrderPlanDetails => [.. _orderPlanDetails];
-    public OrderType OrderType{ get; internal set; }
+    public OrderType OrderType{ get; }
 
     public void AddOrderPlanDetail(OrderPlanDetail orderPlanDetail)
     {

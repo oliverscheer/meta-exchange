@@ -6,7 +6,7 @@ public static class ApiRoutes
 
     public static class CryptoExchanges
     {
-        private const string CryptoExchangesRoot = ApiRoutes.Root + "cryptoexchange";
+        private const string CryptoExchangesRoot = Root + "cryptoexchange";
         public const string GetAll = CryptoExchangesRoot;
         public const string GetExchangeById = CryptoExchangesRoot + "/id";
     }

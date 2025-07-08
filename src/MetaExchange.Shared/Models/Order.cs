@@ -10,9 +10,9 @@ namespace MetaExchange.Shared.Models;
 public class Order
 {
     public required string Id { get; init; }
-    public DateTime Time { get; set; }
+    public DateTime Time { get; init; }
     public OrderType Type { get; init; }
-    public OrderKind Kind { get; set; }
+    public OrderKind Kind { get; init; }
     public decimal Amount { get; set; }
-    public decimal Price { get; set; }
+    public decimal Price { get; init; }
 }

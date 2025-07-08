@@ -9,7 +9,7 @@ namespace MetaExchange.Shared.Models;
 public class CryptoExchange
 {
     public required string Id { get; init; }
-    public required AvailableFunds AvailableFunds { get; set; }
+    public required AvailableFunds AvailableFunds { get; init; }
     public required Orderbook OrderBook { get; set; }
 
 

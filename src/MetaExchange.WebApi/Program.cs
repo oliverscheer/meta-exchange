@@ -105,13 +105,14 @@ app.MapGet(ApiRoutes.CryptoExchanges.GetExchangeById, async (
     CryptoExchange[] cryptoExchanges = result.Value;
 
     CryptoExchange? exchange = cryptoExchanges.FirstOrDefault(e => e.Id == id);
-    if (exchange is null)
+    if (exchange is not null)
     {
-        logger.LogWarning($"Crypto exchange with ID {id} not found.", id);
-        return Results.NotFound($"Crypto exchange with ID {id} not found.");
+        return Results.Ok(exchange);
     }
 
-    return Results.Ok(exchange);
+    logger.LogWarning($"Crypto exchange with ID {id} not found.", id);
+    return Results.NotFound($"Crypto exchange with ID {id} not found.");
+
 });
 
 //
@@ -176,13 +177,14 @@ app.MapGet(ApiRoutes.OrderBook.GetSellOrderPlan, async (
 
     OrderPlan orderPlan = result.Value;
 
-    if (orderPlan.OrderPlanDetails.Length == 0)
+    if (orderPlan.OrderPlanDetails.Length != 0)
     {
-        logger.LogWarning("Order plan could not be created.");
-        return Results.NotFound("Order plan could not be created.");
+        return Results.Ok(orderPlan);
     }
 
-    return Results.Ok(orderPlan);
+    logger.LogWarning("Order plan could not be created.");
+    return Results.NotFound("Order plan could not be created.");
+
 });
 
 app.MapPost(ApiRoutes.OrderBook.ExecuteOrderPlan, async (
@@ -194,13 +196,14 @@ app.MapPost(ApiRoutes.OrderBook.ExecuteOrderPlan, async (
     ILogger logger = loggerFactory.CreateLogger("OrderBook");
     Result<OrderPlan> result = await orderBookService.ExecuteOrderPlan(orderPlan, cancellationToken);
 
-    if (!result.Successful)
+    if (result.Successful)
     {
-        logger.LogWarning("Order plan execution failed.");
-        return Results.BadRequest("Order plan execution failed: " + result.ErrorMessage);
+        return Results.Ok();
     }
 
-    return Results.Ok();
+    logger.LogWarning("Order plan execution failed.");
+    return Results.BadRequest("Order plan execution failed: " + result.ErrorMessage);
+
 });
 
 app.Run();

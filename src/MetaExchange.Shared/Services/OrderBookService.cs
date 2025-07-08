@@ -109,7 +109,7 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
         return result;
     }
 
-    private Result<OrderPlan> CheckOrderPlanWithNewOrderPlanDetail(CryptoExchange cryptoExchange,
+    private static Result<OrderPlan> CheckOrderPlanWithNewOrderPlanDetail(CryptoExchange cryptoExchange,
         OrderPlan orderPlan,
         OrderPlanDetail orderPlanDetail)
     {
@@ -122,18 +122,20 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
         // before new order plan detail is added
         foreach (OrderPlanDetail opd in orderPlan.OrderPlanDetails)
         {
-            if (opd.CryptoExchangeId == cryptoExchange.Id)
+            if (opd.CryptoExchangeId != cryptoExchange.Id)
             {
-                if (orderPlan.OrderType == OrderType.Buy)
-                {
-                    estimatedEuroForCryptoExchange -= opd.Order.Price * opd.Amount;
-                    estimatedCryptoForCryptoExchange += opd.Amount;
-                }
-                else
-                {
-                    estimatedEuroForCryptoExchange += opd.Order.Price * opd.Amount;
-                    estimatedCryptoForCryptoExchange -= opd.Amount;
-                }
+                continue;
+            }
+
+            if (orderPlan.OrderType == OrderType.Buy)
+            {
+                estimatedEuroForCryptoExchange -= opd.Order.Price * opd.Amount;
+                estimatedCryptoForCryptoExchange += opd.Amount;
+            }
+            else
+            {
+                estimatedEuroForCryptoExchange += opd.Order.Price * opd.Amount;
+                estimatedCryptoForCryptoExchange -= opd.Amount;
             }
         }
 
@@ -181,13 +183,12 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
             return result;
         }
 
-        foreach (OrderPlanDetail orderPlanDetail in orderPlan.OrderPlanDetails)
+        foreach ((string cryptoExchangeId, Order order, decimal amount) in orderPlan.OrderPlanDetails)
         {
             CryptoExchange cryptoExchange = cryptoExchangesResult.Value
-                .FirstOrDefault(exchange => exchange.Id == orderPlanDetail.CryptoExchangeId)
-                ?? throw new InvalidOperationException($"Crypto exchange with ID {orderPlanDetail.CryptoExchangeId} not found.");
+                .FirstOrDefault(exchange => exchange.Id == cryptoExchangeId)
+                ?? throw new InvalidOperationException($"Crypto exchange with ID {cryptoExchangeId} not found.");
 
-            Order order = orderPlanDetail.Order;
             switch (orderPlan.OrderType)
             {
                 case OrderType.Buy:
@@ -195,13 +196,13 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
                     // I'm buying from a bid
                     // so we need to reduce crypto exchange funds
                     // and add increase euro funds
-                    cryptoExchange.AvailableFunds.Crypto += orderPlanDetail.Amount;
-                    cryptoExchange.AvailableFunds.Euro -= order.Price * orderPlanDetail.Amount;
+                    cryptoExchange.AvailableFunds.Crypto += amount;
+                    cryptoExchange.AvailableFunds.Euro -= order.Price * amount;
 
-                    if (order.Amount > orderPlanDetail.Amount)
+                    if (order.Amount > amount)
                     {
                         // Reduce amount in bid order
-                        order.Amount -= orderPlanDetail.Amount;
+                        order.Amount -= amount;
                     }
                     else
                     {
@@ -227,13 +228,13 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
                     // I'm selling to an ask,
                     // so we need to increase crypto exchange funds
                     // and reduce euro funds
-                    cryptoExchange.AvailableFunds.Crypto -= orderPlanDetail.Amount;
-                    cryptoExchange.AvailableFunds.Euro += order.Price * orderPlanDetail.Amount;
+                    cryptoExchange.AvailableFunds.Crypto -= amount;
+                    cryptoExchange.AvailableFunds.Euro += order.Price * amount;
 
-                    if (order.Amount > orderPlanDetail.Amount)
+                    if (order.Amount > amount)
                     {
                         // Reduce order
-                        order.Amount -= orderPlanDetail.Amount;
+                        order.Amount -= amount;
                     }
                     else
                     {
@@ -278,7 +279,7 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
             .. cryptoExchange.OrderBook.Asks,
             ask
         ];
-        cryptoExchange.OrderBook = new Orderbook()
+        cryptoExchange.OrderBook = new Orderbook
         {
             Bids = cryptoExchange.OrderBook.Bids,
             Asks = [.. asks]
@@ -293,7 +294,7 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
             .. cryptoExchange.OrderBook.Bids,
             bid
         ];
-        cryptoExchange.OrderBook = new Orderbook()
+        cryptoExchange.OrderBook = new Orderbook
         {
             Asks = cryptoExchange.OrderBook.Asks,
             Bids = [.. bids]

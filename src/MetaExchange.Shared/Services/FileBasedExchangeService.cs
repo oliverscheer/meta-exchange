@@ -44,7 +44,7 @@ public class FileBasedExchangeService : IExchangeService
         return resourceNames;
     }
 
-    public CryptoExchange[] LoadDataFromEmbbedFiles()
+    private CryptoExchange[] LoadDataFromEmbbedFiles()
     {
         _logger.LogInformation("Load data from embedded sample files");
 
@@ -67,7 +67,7 @@ public class FileBasedExchangeService : IExchangeService
         }
         catch (Exception exc)
         {
-            _logger.LogError(exc, $"Error loading exchange data from embedded files.");
+            _logger.LogError(exc, "Error loading exchange data from embedded files.");
             return [];
         }
     }

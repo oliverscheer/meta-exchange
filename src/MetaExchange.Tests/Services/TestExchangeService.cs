@@ -8,20 +8,19 @@ public class TestExchangeService : IExchangeService
     {
         CryptoExchange sampleCryptoExchange = new()
         {
-            AvailableFunds = new AvailableFunds()
+            AvailableFunds = new AvailableFunds
             {
                 Euro = initEuro,
                 Crypto = initCrypto
             },
             Id = "Test-Empty-Exchange",
-            OrderBook = new Orderbook() { Asks = [], Bids = [] }
+            OrderBook = new Orderbook { Asks = [], Bids = [] }
         };
 
         _cryptoExchanges.Add(sampleCryptoExchange);
     }
 
-    public CryptoExchange[] CryptoExchanges { get => [.. _cryptoExchanges]; set => _cryptoExchanges = [.. value]; }
-    private List<CryptoExchange> _cryptoExchanges = [];
+    private readonly List<CryptoExchange> _cryptoExchanges = [];
 
     public async Task<Result<CryptoExchange[]>> GetCryptoExchanges(CancellationToken cancellationToken)
     {
