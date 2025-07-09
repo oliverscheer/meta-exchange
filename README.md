@@ -1,6 +1,8 @@
 # Meta Exchange
 
-This is a sample project, to demonstrate some required skills.
+This is a sample project, to demonstrate some skills.
+
+The task is defined in this [description](docs/task.md).
 
 ## Clone Repository
 
@@ -45,7 +47,11 @@ Then open a browser on this address: <http://localhost:8080/scalar/>
 
 ## Remarks
 
-- No Database used for simplicity and time constraint. All data is kept in memory. Restart = Rest.
-- Data is read from embedded json files.
-- DebuggerDisplay Attribute is used for better debugging experiences.
-- .editorconfig used to get solution wide coding rules applied.
+- No Database used for simplicity and time constraint. All data is kept in memory. Restart = Reset.
+- Data is read from embedded json files with the [EmbeddedResourceHelper](src/MetaExchange.Shared/Helper/EmbeddedResourceHelper.cs)
+- DebuggerDisplay Attribute is used for better debugging experiences. [Example Usage](src/MetaExchange.Shared/Models/Order.cs).
+- [.editorconfig](src/.editorconfig) used to get solution wide coding rules applied.
+
+## Contact
+
+Feel free to reach out via issue or email.
