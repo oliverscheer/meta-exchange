@@ -55,7 +55,7 @@ public class FileBasedExchangeService : IExchangeService
 
             foreach (string filename in filenames)
             {
-                _logger.LogInformation($"Loading exchange data from file: {filename}");
+                _logger.LogInformation("Loading exchange data from file: {filename}", filename);
                 string jsonData = EmbeddedResourceHelper.GetEmbeddedResource(filename);
                 CryptoExchange? crypto = LoadDataFromString(jsonData);
 
@@ -89,7 +89,7 @@ public class FileBasedExchangeService : IExchangeService
         }
         catch (Exception exc)
         {
-            _logger.LogError(exc, $"Error loading exchange data from file: {jsonData}");
+            _logger.LogError(exc, "Error loading exchange data from file: {jsonData}", jsonData);
             throw;
         }
     }

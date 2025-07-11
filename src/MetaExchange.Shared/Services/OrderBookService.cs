@@ -12,7 +12,7 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
 
     public async Task<Result<OrderPlan>> CreateBuyPlan(decimal amountOfBtcToBuy, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Create buying plan for {amountOfBtcToBuy}");
+        logger.LogInformation("Create buying plan for {amountOfBtcToBuy}", amountOfBtcToBuy);
         OrderPlan orderPlan = new(OrderType.Buy);
         Result<OrderPlan> result = new(orderPlan);
 
@@ -51,7 +51,7 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
             if (!checkResult.Successful)
             {
                 result.AddWarning(checkResult.ErrorMessage);
-                logger.LogWarning($"Order plan check failed: {checkResult.ErrorMessage}");
+                logger.LogWarning("Order plan check failed: {ErrorMessage}", checkResult.ErrorMessage);
                 continue;
             }
 
@@ -64,7 +64,7 @@ public class OrderBookService(IExchangeService exchangeService, ILogger<OrderBoo
     public async Task<Result<OrderPlan>> CreateSellPlan(decimal amountOfBtcToSell, CancellationToken cancellationToken)
     {
 
-        logger.LogInformation($"Create selling plan for {amountOfBtcToSell} BTC.");
+        logger.LogInformation("Create selling plan for {amountOfBtcToSell} BTC.", amountOfBtcToSell);
 
         OrderPlan orderPlan = new(OrderType.Sell);
         Result<OrderPlan> result = new(orderPlan);

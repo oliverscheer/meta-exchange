@@ -42,11 +42,11 @@ if (app.Environment.IsDevelopment())
         ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
         if (httpsPort is not null)
         {
-            logger.LogInformation($"Start scalar on https://localhost:{httpsPort}/scalar");
+            logger.LogInformation("Start scalar on https://localhost:{httpsPort}/scalar", httpsPort);
         }
         if (httpPort is not null)
         {
-            logger.LogInformation($"Start scalar on http://localhost:{httpPort}/scalar");
+            logger.LogInformation("Start scalar on http://localhost:{httpPort}/scalar", httpPort);
         }
     });
 }
@@ -69,7 +69,7 @@ app.MapGet(ApiRoutes.CryptoExchanges.GetAll, async (
     if (!result.Successful ||
         result.Value is null)
     {
-        logger.LogError(result.ErrorMessage);
+        logger.LogError("Error while getting crypto exchanges. Message: {message}", result.ErrorMessage);
         return Results.BadRequest();
     }
 
@@ -98,7 +98,7 @@ app.MapGet(ApiRoutes.CryptoExchanges.GetExchangeById, async (
     if (!result.Successful ||
         result.Value is null)
     {
-        logger.LogError(result.ErrorMessage);
+        logger.LogError("Error while getting crypto exchanges. Message: {message}", result.ErrorMessage);
         return Results.BadRequest();
     }
 
@@ -110,7 +110,7 @@ app.MapGet(ApiRoutes.CryptoExchanges.GetExchangeById, async (
         return Results.Ok(exchange);
     }
 
-    logger.LogWarning($"Crypto exchange with ID {id} not found.", id);
+    logger.LogWarning("Crypto exchange with ID {id} not found.", id);
     return Results.NotFound($"Crypto exchange with ID {id} not found.");
 
 });
@@ -132,7 +132,7 @@ app.MapGet(ApiRoutes.OrderBook.GetBuyOrderPlan, async (
     if (!orderPlanResult.Successful ||
         orderPlanResult.Value is null)
     {
-        logger.LogError(orderPlanResult.ErrorMessage);
+        logger.LogError("Error while creating buy plan. Message: {message}", orderPlanResult.ErrorMessage);
         return Results.BadRequest();
     }
 
@@ -155,7 +155,7 @@ app.MapGet(ApiRoutes.OrderBook.GetBuyOrderPlan, async (
         return Results.Ok(orderPlan);
     }
 
-    logger.LogError(executionResult.ErrorMessage);
+    logger.LogError("Error while executing order plan. Message: {message}", executionResult.ErrorMessage);
     return Results.BadRequest();
 
 });
@@ -171,7 +171,7 @@ app.MapGet(ApiRoutes.OrderBook.GetSellOrderPlan, async (
     if (!result.Successful ||
         result.Value is null)
     {
-        logger.LogError(result.ErrorMessage);
+        logger.LogError("Error while getting crypto exchanges. Message: {message}", result.ErrorMessage);
         return Results.BadRequest("Failed to create sell order plan.");
     }
 
